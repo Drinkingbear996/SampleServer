@@ -4,14 +4,14 @@ import threading
 
 app = Flask(__name__)
 
-# 键值存储和锁
+# 键值存储和锁 Lock and kv store
 store = {}
-locks = {}  # 用于每个键的锁
-global_lock = threading.Lock()  # 全局锁用于创建新键的锁
-
+locks = {}  # locks for each key
+global_lock = threading.Lock()
+# If multiples clients modify the same key simoutaneously, the global lock ensure only 1 thread to visit  shared resources
 
 def get_lock_for_key(key):
-    """ 为每个键生成或获取一个锁 """
+    """ For each key,it inits or gets a lock for """
     with global_lock:
         if key not in locks:
             locks[key] = threading.Lock()
@@ -20,8 +20,8 @@ def get_lock_for_key(key):
 
 @app.route('/<key>', methods=['GET'])
 def get_value(key):
-    """ 获取键对应的值 """
-    lock = get_lock_for_key(key)  # 获取对应键的锁
+    """ Getting value from key """
+    lock = get_lock_for_key(key)  # Getting lock for key
     with lock:
         value = store.get(key)
         if value is None:
@@ -32,14 +32,14 @@ def get_value(key):
 
 @app.route('/<key>', methods=['POST'])
 def put_value(key):
-    """ 存储键值对 """
+    """ store key-value pairs """
     value = request.json.get('value')
     if not value:
         return jsonify({'error': 'Invalid value'}), 400
 
     lock = get_lock_for_key(key)  # 获取对应键的锁
     with lock:
-        store[key] = value  # 修改键值
+        store[key] = value  # Modify value
         log_operation('PUT', key, value)
 
     return jsonify({'message': 'Value stored successfully'})
@@ -47,7 +47,7 @@ def put_value(key):
 
 @app.route('/<key>', methods=['DELETE'])
 def delete_value(key):
-    """ 删除键值对 """
+    """ Delete key-value pairs """
     lock = get_lock_for_key(key)  # 获取对应键的锁
     with lock:
         if key in store:

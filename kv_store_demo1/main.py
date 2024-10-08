@@ -3,12 +3,12 @@ from kv_store_demo1.persistence import load_from_disk, periodic_save
 import threading
 
 if __name__ == '__main__':
-    # 从磁盘加载数据
+    # Loading data from disk
     load_from_disk(store)
 
-    # 启动后台线程，每隔15秒保存一次数据
+    # Running backend thread and store data each 15 sec
     save_thread = threading.Thread(target=periodic_save, args=(store,), daemon=True)
     save_thread.start()
 
-    # 启动 Flask 服务器
+    #  Running Flask Service
     app.run(host='0.0.0.0', port=8080)

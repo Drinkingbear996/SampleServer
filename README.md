@@ -56,10 +56,10 @@ Body (JSON):
   "message": "Value stored successfully"
 }
 
+```
+
 <img width="500" alt="image" src="https://github.com/user-attachments/assets/b1c2d71a-eeb7-4bde-a99f-9c6a9fc7ca05">
 
-
-```
 2. GET - Retrieve a value by key
 ```bash
 URL: http://127.0.0.1:8080/<key>
@@ -97,6 +97,9 @@ Response (200 OK):
 
 
 ```
+
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/80fc9391-d943-4093-abe5-192b5f375661">
+
 
 ### Logging
 All operations (GET, PUT, DELETE, and periodic saves) are logged in kv_store.log.

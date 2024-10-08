@@ -74,6 +74,7 @@ Response (200 OK):
 }
 
 ```
+<img width="974" alt="image" src="https://github.com/user-attachments/assets/be2c04c5-063a-4ab5-aec7-12552037e346">
 
 3. DELETE - Remove a key-value pair
 
@@ -106,6 +107,16 @@ All operations (GET, PUT, DELETE, and periodic saves) are logged in kv_store.log
 ### Persistence
 Data is periodically saved to disk in a file named kv_store.json every 15 seconds. This ensures that key-value pairs remain available even after a server restart.
 Upon server startup, the data is loaded from kv_store.json back into memory.
+
+### Benchmark Test
+```bash
+Final Results:
+Total operations: 600
+Total time: 0.39 seconds
+Throughput: 1527.57 operations per second
+Average Latency: 0.00390 seconds per operation
+
+```
 
 ## Project Structure
 ```markdown

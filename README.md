@@ -56,7 +56,7 @@ Body (JSON):
   "message": "Value stored successfully"
 }
 
-<img width="300" alt="image" src="https://github.com/user-attachments/assets/b1c2d71a-eeb7-4bde-a99f-9c6a9fc7ca05">
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/b1c2d71a-eeb7-4bde-a99f-9c6a9fc7ca05">
 
 
 ```
@@ -77,7 +77,7 @@ Response (200 OK):
 }
 
 ```
-<img width="300" alt="image" src="https://github.com/user-attachments/assets/be2c04c5-063a-4ab5-aec7-12552037e346">
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/be2c04c5-063a-4ab5-aec7-12552037e346">
 
 3. DELETE - Remove a key-value pair
 

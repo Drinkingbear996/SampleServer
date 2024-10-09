@@ -116,11 +116,17 @@ Upon server startup, the data is loaded from kv_store.json back into memory.
 
 ### Benchmark Test
 ```bash
+running main.py
+
+#open terminal
+python benchmark.py
+
 Final Results:
 Total operations: 600
-Total time: 0.39 seconds
-Throughput: 1527.57 operations per second
-Average Latency: 0.00390 seconds per operation
+Total time: 0.38 seconds
+Throughput: 1569.28 operations per second
+Average Latency: 0.00380 seconds per operation
+
 
 ```
 

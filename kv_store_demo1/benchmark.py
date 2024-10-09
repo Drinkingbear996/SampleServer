@@ -1,5 +1,3 @@
-#!/usr/bin/env python 
-# -*- coding:utf-8 -*-
 import threading
 import queue
 import requests
@@ -69,7 +67,7 @@ def monitor_performance():
 
 # Populate the operation queue with mixed 'set' and 'get' requests
 for i in range(NUM_THREADS * OPS_PER_THREAD):
-    op_type = 'set' if i % 2 else 'set'
+    op_type = 'get' if i % 2 else 'set'
     key = f"key_{i}"
     value = f"value_{i}" if op_type == 'set' else None
     operations_queue.put((op_type, key, value))

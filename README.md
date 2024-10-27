@@ -14,6 +14,7 @@ This project implements a simple single-server **key-value store** using Flask. 
 ### Prerequisites
 - Python 3.x
 - `pip` (Python package installer)
+- Docker (for containerized deployment)
 
 ### Steps
 1. Clone the repository:
@@ -129,7 +130,18 @@ Average Latency: 0.00380 seconds per operation
 
 
 ```
+## Docker
+```bash
+# 1.Create image
+docker build -t kv_store_app .
 
+# 2. Running server on docker
+docker run -p 8080:8080 kv_store_app
+
+# 3.Now, the application is accessible at http://localhost:8080 on your host machine.
+
+
+```
 ## Project Structure
 ```markdown
 .

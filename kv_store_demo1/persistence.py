@@ -1,7 +1,7 @@
 import json
 import time
 import os
-from kv_store_demo1.logging_utils import log_operation
+from logging_utils import log_operation
 
 PERSISTENCE_FILE = 'kv_store.json'  #  The path of persistent files 持久化文件路径
 

@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from kv_store_demo1.logging_utils import log_operation
+from logging_utils import log_operation
 import threading
 
 app = Flask(__name__)

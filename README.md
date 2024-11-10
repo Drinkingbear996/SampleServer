@@ -3,6 +3,10 @@
 ## Project Overview
 This project implements a simple single-server **key-value store** using Flask. The server supports basic operations like `GET`, `PUT`, and `DELETE` to manage key-value pairs. The system ensures **thread safety** for concurrent operations by using per-key locks and includes a **persistence mechanism** that periodically saves in-memory data to disk to prevent data loss. Additionally, the project features **operation logging** for monitoring and debugging.
 
+## Update(2024 11.9)
+
+
+This project has been enhanced to support consistent hashing for distributing the load across multiple instances. Three containerized key-value store instances have been deployed using Docker, each listening on a unique port (8081, 8082, 8083). The updated implementation improves scalability and performance, reducing latency and increasing throughput as more instances are added. Benchmark results and testing details are provided in the updated documentation.
 ## Features
 - **API operations**: Supports `GET`, `PUT`, and `DELETE` requests for key-value storage management.
 - **Thread safety**: Implements per-key locks to ensure concurrent requests do not conflict.
@@ -142,19 +146,39 @@ docker run -p 8080:8080 kv_store_app
 
 
 ```
+## Docker Deployment
+```markdown
+# 1. Build the image
+docker build -t kv_store_app .
+
+# 2. Deploy three instances of the KV store with unique ports
+docker run -p 8081:8080 kv_store_app
+docker run -p 8082:8080 kv_store_app
+docker run -p 8083:8080 kv_store_app
+
+# 3. Now, the instances are accessible at:
+# Instance 1: http://localhost:8081
+# Instance 2: http://localhost:8082
+# Instance 3: http://localhost:8083
+
+```
+
 ## Project Structure
 ```markdown
 .
-├── kv_store/
-│   ├── __init__.py          # Marks the folder as a Python package
-│   ├── logging_utils.py     # Logs all operations to a file
-│   ├── main.py              # Entry point to start the server
-│   ├── persistence.py       # Handles data persistence (saving/loading)
-│   ├── server.py            # Implements Flask server with key-value operations
-├── README.md                # Project documentation
-├── requirements.txt         # Dependencies
-├── kv_store.json            # File where data is saved (created after running the app)
-└── kv_store.log             # Log file (created after running the app)
-
+├── kv_store_demo1/
+│   ├── __init__.py            # Marks the folder as a Python package
+│   ├── benchmark.py           # Script to test performance metrics (throughput and latency)
+│   ├── docker-compose.yml     # Docker Compose configuration for running multiple KV store instances
+│   ├── Dockerfile             # Dockerfile for containerizing the KV store application
+│   ├── kv_store.json          # File where key-value data is saved (created after running the app)
+│   ├── kv_store.log           # Log file recording all operations
+│   ├── load_balancer.py       # Implements consistent hashing and distributes requests across KV store instances
+│   ├── logging_utils.py       # Utility module for logging operations
+│   ├── main.py                # Entry point to start the server
+│   ├── persistence.py         # Handles data persistence (saving/loading)
+│   ├── README.md              # Project documentation
+│   ├── requirements.txt       # Dependencies for the project
+│   ├── server.py              # Implements Flask server for handling key-value operations
 ```
 

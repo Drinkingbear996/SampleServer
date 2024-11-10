@@ -1,0 +1,19 @@
+version: '3'
+services:
+  kv_store1:
+    build: .
+    container_name: kv_store1
+    ports:
+      - "8081:8080"
+
+  kv_store2:
+    build: .
+    container_name: kv_store2
+    ports:
+      - "8082:8080"
+
+  kv_store3:
+    build: .
+    container_name: kv_store3
+    ports:
+      - "8083:8080"

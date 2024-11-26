@@ -1,10 +1,9 @@
 from flask import Flask, request, jsonify
-from logging_utils import log_operation
 import threading
 
 app = Flask(__name__)
 
-# 键值存储和锁 Lock and kv store
+#  Lock and kv store
 store = {}
 locks = {}  # locks for each key
 global_lock = threading.Lock()
@@ -26,7 +25,6 @@ def get_value(key):
         value = store.get(key)
         if value is None:
             return jsonify({'error': 'Key not found'}), 404
-        log_operation('GET', key, value)
         return jsonify({'value': value})
 
 
@@ -40,7 +38,6 @@ def put_value(key):
     lock = get_lock_for_key(key)  # 获取对应键的锁
     with lock:
         store[key] = value  # Modify value
-        log_operation('PUT', key, value)
 
     return jsonify({'message': 'Value stored successfully'})
 
@@ -52,7 +49,6 @@ def delete_value(key):
     with lock:
         if key in store:
             del store[key]
-            log_operation('DEL', key)
             return jsonify({'message': 'Key deleted successfully'})
         else:
             return jsonify({'error': 'Key not found'}), 404

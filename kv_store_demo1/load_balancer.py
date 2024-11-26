@@ -12,7 +12,7 @@ class LoadBalancer:
 
     def add_node(self, node):
         node_hash = self._hash(node)
-        self.ring.append(node_hash)
+        self.rΩing.append(node_hash)
         self.node_map[node_hash] = node
         self.ring.sort()
 

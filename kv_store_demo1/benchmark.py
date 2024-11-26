@@ -1,92 +1,87 @@
+import asyncio
+import aiohttp
 import time
-import requests
-import random
+from itertools import cycle
 
-# Define the base URLs for the three container instances
-BASE_URLS = ["http://localhost:8081", "http://localhost:8082", "http://localhost:8083"]
+# Configurations for testing distributed KV stores
+BASE_URLS_LISTS = [
+    ['http://127.0.0.1:8081'],  # Single node
+    ['http://127.0.0.1:8081', 'http://127.0.0.1:8082'],  # Two nodes
+    ['http://127.0.0.1:8081', 'http://127.0.0.1:8082', 'http://127.0.0.1:8083']  # Three nodes
+]
 
-NUM_REQUESTS = 100  # Number of requests to be sent for each operation
+# Total operations and concurrency settings
+NUM_OPERATIONS = 600  # Total operations (split between set, get, delete)
+CONCURRENCY = 250     # Number of concurrent operations
 
+# Queue for latencies to calculate performance
+latencies = []
 
-def put(key, value):
-    """
-    Sends a PUT request to store a key-value pair.
-    Randomly selects one of the instances to handle the request.
-    """
-    url = random.choice(BASE_URLS)  # Randomly choose an instance
-    response = requests.post(f"{url}/{key}", json={"value": value})
-    return response.json()
+# Single KV store operation (async)
+async def kv_store_operation(session, op_type, key, value=None, node_iterator=None):
+    try:
+        base_url = next(node_iterator)  # Use round-robin to pick a node
+        start_time = time.time()  # Start timing
 
+        if op_type == 'set':
+            async with session.post(f"{base_url}/{key}", json={'value': value}) as response:
+                await response.text()
+        elif op_type == 'get':
+            async with session.get(f"{base_url}/{key}") as response:
+                await response.text()
+        elif op_type == 'delete':
+            async with session.delete(f"{base_url}/{key}") as response:
+                await response.text()
 
-def get(key):
-    """
-    Sends a GET request to retrieve the value for a given key.
-    Randomly selects one of the instances to handle the request.
-    """
-    url = random.choice(BASE_URLS)
-    response = requests.get(f"{url}/{key}")
-    return response.json()
+        latency = time.time() - start_time  # Calculate latency
+        latencies.append(latency)  # Store latency
+    except Exception as e:
+        pass  # Ignore errors for maximum throughput
 
+# Worker coroutine function
+async def worker(operations, base_urls):
+    node_iterator = cycle(base_urls)  # Create a round-robin iterator for nodes
+    async with aiohttp.ClientSession() as session:
+        tasks = [kv_store_operation(session, op, key, value, node_iterator) for op, key, value in operations]
+        await asyncio.gather(*tasks)  # Concurrent execution
 
-def delete(key):
-    """
-    Sends a DELETE request to remove a key-value pair.
-    Randomly selects one of the instances to handle the request.
-    """
-    url = random.choice(BASE_URLS)
-    response = requests.delete(f"{url}/{key}")
-    return response.json()
+# Main benchmark function
+async def test_kv_store(base_urls, num_operations, concurrency):
+    # Prepare operations: 1/3 'set', 1/3 'get', 1/3 'delete'
+    operations = []
+    for i in range(num_operations // 3):
+        operations.append(('set', f'key_{i}', f'value_{i}'))
+    for i in range(num_operations // 3):
+        operations.append(('get', f'key_{i}', None))
+    for i in range(num_operations // 3):
+        operations.append(('delete', f'key_{i}', None))
 
+    # Divide operations into batches for concurrent execution
+    operation_batches = [operations[i:i + concurrency] for i in range(0, len(operations), concurrency)]
 
-def run_benchmark():
-    """
-    Runs the benchmark tests for PUT, GET, and DELETE operations.
-    Measures throughput, latency, and total time for each operation type.
-    """
+    # Start benchmark
     start_time = time.time()
-
-    # Test PUT requests
-    put_start_time = time.time()
-    for i in range(NUM_REQUESTS):
-        put(f"key_{i}", f"value_{i}")
-    put_end_time = time.time()
-
-    # Test GET requests
-    get_start_time = time.time()
-    for i in range(NUM_REQUESTS):
-        get(f"key_{i}")
-    get_end_time = time.time()
-
-    # Test DELETE requests
-    delete_start_time = time.time()
-    for i in range(NUM_REQUESTS):
-        delete(f"key_{i}")
-    delete_end_time = time.time()
-
-    # Calculate time metrics
+    for batch in operation_batches:
+        await worker(batch, base_urls)
     total_time = time.time() - start_time
-    put_time = put_end_time - put_start_time
-    get_time = get_end_time - get_start_time
-    delete_time = delete_end_time - delete_start_time
 
-    # Calculate throughput and latency
-    throughput = (NUM_REQUESTS * 3) / total_time
-    put_throughput = NUM_REQUESTS / put_time
-    get_throughput = NUM_REQUESTS / get_time
-    delete_throughput = NUM_REQUESTS / delete_time
+    # Calculate final results
+    total_ops = num_operations
+    throughput = total_ops / total_time
+    return total_ops, total_time, throughput
 
-    # Output the results
-    print("\nBenchmark Results:")
-    print(f"Total operations: {NUM_REQUESTS * 3}")
-    print(f"Total time: {total_time:.2f} seconds")
-    print(f"Overall Throughput: {throughput:.2f} operations per second")
-    print(f"PUT Throughput: {put_throughput:.2f} operations per second")
-    print(f"GET Throughput: {get_throughput:.2f} operations per second")
-    print(f"DELETE Throughput: {delete_throughput:.2f} operations per second")
-    print(f"PUT Latency: {put_time / NUM_REQUESTS:.5f} seconds per operation")
-    print(f"GET Latency: {get_time / NUM_REQUESTS:.5f} seconds per operation")
-    print(f"DELETE Latency: {delete_time / NUM_REQUESTS:.5f} seconds per operation")
+# Main program
+async def main():
+    results = []
+    for base_urls in BASE_URLS_LISTS:
+        total_ops, total_time, throughput = await test_kv_store(base_urls, NUM_OPERATIONS, CONCURRENCY)
+        results.append((len(base_urls), total_ops, total_time, throughput))
 
+    # Print final results
+    print("\nFinal Results:")
+    for num_nodes, total_ops, total_time, throughput in results:
+        print(f"Nodes: {num_nodes}, Total operations: {total_ops}, Total time: {total_time:.2f} seconds, "
+              f"Throughput: {throughput:.2f} ops/sec")
 
-if __name__ == "__main__":
-    run_benchmark()
+if __name__ == '__main__':
+    asyncio.run(main())
